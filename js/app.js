@@ -4,7 +4,7 @@ var Card = function(style) {
 };
 
 Card.prototype.createHtml = function() {
-	var html = '<li class="card"><i class="fa ' + this.style + '"></i></li>';
+	var html = '<li class="card"><div class="card-container"><i class="card-front"/><i class="card-back fa ' + this.style + '"/></div></li>';
 	return html;
 }
 
