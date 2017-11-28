@@ -36,9 +36,9 @@ var Game = function() {
 
 	var game = this;
 	//add key up listner, if play presses 'r', game will be reset.
-	$(document).keyup(function(event){
+	$(document).keyup(function(event) {
 		//console.log('event: ' + event.which);
-		if(event.which == 82){
+		if (event.which == 82) {
 			game.restart();
 		}
 	});
@@ -97,12 +97,12 @@ Game.prototype.onCardClick = function(cardHtmlElem) {
 	}
 
 	//display the card's symbol
-	$(cardHtmlElem).addClass('open show');
+	$(cardHtmlElem).find('.card-container').addClass('open');
 
 	//if the cards do not match, remove the cards from the list and hide the card's symbol
 	if (this.openCards.length == 2) {
-		$(this.openCards[0]).removeClass('open show');
-		$(this.openCards[1]).removeClass('open show');
+		$(this.openCards[0]).find('.card-container').removeClass('open');
+		$(this.openCards[1]).find('.card-container').removeClass('open');
 		this.openCards.length = 0;
 	}
 
@@ -123,11 +123,15 @@ Game.prototype.onCardClick = function(cardHtmlElem) {
 			firstOne.off('click');
 			secondOne.off('click');
 
-			firstOne.removeClass('open show');
-			secondOne.removeClass('open show');
+			//add class when transistion ended
+			$(cardHtmlElem).find('.card-container').on('transitionend', function() {
+				//console.log('transistion ended')
+				firstOne.find('.card-back').addClass('match');
+				secondOne.find('.card-back').addClass('match');
 
-			firstOne.addClass('match');
-			secondOne.addClass('match');
+				firstOne.addClass('animated rubberBand');
+				secondOne.addClass('animated rubberBand');
+			});
 
 			this.openCards.length = 0;
 		}

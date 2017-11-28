@@ -62,26 +62,12 @@ h1 {
     align-items: center;
 }
 
-.deck .card.open {
-    cursor: default;
-}
 
-.deck .card.show {
-    font-size: 33px;
-}
-
-.deck .card.match {
-    cursor: default;
-    background: #02ccba;
-    font-size: 33px;
-}
 
 /*
 * Styles for flippable cards
 */
-.card:hover .card-container{
-    transform: rotateY(180deg);
-}
+
 
 .card-container{
     height: 125px;
@@ -90,6 +76,11 @@ h1 {
     transform-style: preserve-3d;
     transition-duration: 0.6s;
     transform-origin: 50% 50%;
+}
+
+.card-container.open{
+    cursor: default;
+    transform: rotateY(180deg);
 }
 
 .card-front, .card-back{
@@ -118,6 +109,9 @@ h1 {
     transform: rotateY(180deg);
 }
 
+.card-back.match {
+    background: #02ccba;
+}
 
 /*
  * Styles for the Score Panel
