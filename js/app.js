@@ -4,13 +4,14 @@ var Card = function(style) {
 };
 
 Card.prototype.createHtml = function() {
-	var html = '<li class="card"><div class="card-container"><i class="card-front"/><i class="card-back fa ' + this.style + '"/></div></li>';
+	var html = '<li class="animated card"><div class="card-container"><i class="card-front"/><i class="card-back fa ' + this.style + '"/></div></li>';
 	return html;
 }
 
 //define the Game 
 var Game = function() {
 	this.stars = 3;
+	this.clickCounter = 0;
 	this.firstClickTime = 0;
 	this.firstClick = true;
 	this.counter = 0;
@@ -45,8 +46,9 @@ var Game = function() {
 }
 
 Game.prototype.restart = function() {
+	this.canClick = true;
 	this.firstClickTime = 0;
-	this.firstClick = true;
+	this.clickCounter = 0;
 	this.setStars(3);
 	this.counter = 0;
 	this.openCards.length = 0;
@@ -83,8 +85,28 @@ Game.prototype.setStars = function(starCount) {
 	$('.stars').html(startHtml);
 }
 
+
+Game.prototype.playCardUnMatchAnimation = function(card) {
+	//play wobble animation and flip card when animation ended
+	card.find('.card-back').addClass('unmatch');
+	card.addClass('wobble');
+	var game = this;
+	card.on('animationend', function() {
+		card.off('animationend');
+		card.removeClass('wobble');
+		card.find('.card-container').removeClass('open');
+		game.clickCounter--;
+	});
+}
+
 Game.prototype.onCardClick = function(cardHtmlElem) {
 	//console.log(this);
+
+	//only when clickCounter less than 2 can player flip a card
+	if(this.clickCounter >= 2){
+		//console.log('clickCounter = '+this.clickCounter);
+		return;
+	}
 
 	//game starts only when player clicked card for the first time.
 	if (this.firstClick) {
@@ -93,18 +115,15 @@ Game.prototype.onCardClick = function(cardHtmlElem) {
 	}
 
 	if (this.openCards.indexOf(cardHtmlElem) != -1) {
+		//console.log('same card clicked');
 		return;
 	}
 
+	this.clickCounter++;
+
 	//display the card's symbol
 	$(cardHtmlElem).find('.card-container').addClass('open');
-
-	//if the cards do not match, remove the cards from the list and hide the card's symbol
-	if (this.openCards.length == 2) {
-		$(this.openCards[0]).find('.card-container').removeClass('open');
-		$(this.openCards[1]).find('.card-container').removeClass('open');
-		this.openCards.length = 0;
-	}
+	$(cardHtmlElem).find('.card-back').removeClass('unmatch');
 
 	//add the card to a *list* of "open" cards
 	this.openCards.push(cardHtmlElem);
@@ -113,8 +132,8 @@ Game.prototype.onCardClick = function(cardHtmlElem) {
 		var firstOne = $(this.openCards[0]);
 		var secondOne = $(this.openCards[1]);
 
-		console.log(firstOne.html());
-		console.log(secondOne.html());
+		//console.log(firstOne.html());
+		//console.log(secondOne.html());
 
 		//if the cards do match, lock the cards in the open position
 		if (firstOne.html() == secondOne.html()) {
@@ -125,16 +144,30 @@ Game.prototype.onCardClick = function(cardHtmlElem) {
 
 			//add class when transistion ended
 			$(cardHtmlElem).find('.card-container').on('transitionend', function() {
+				$(cardHtmlElem).find('.card-container').off('transitionend');
+
 				//console.log('transistion ended')
 				firstOne.find('.card-back').addClass('match');
 				secondOne.find('.card-back').addClass('match');
 
-				firstOne.addClass('animated rubberBand');
-				secondOne.addClass('animated rubberBand');
+				//add match animation
+				firstOne.addClass('rubberBand');
+				secondOne.addClass('rubberBand');
 			});
 
-			this.openCards.length = 0;
+			this.clickCounter = 0;
+		} else {
+			var game = this;
+			//if the cards do not match, remove the cards from the list and hide the card's symbol
+			$(cardHtmlElem).find('.card-container').on('transitionend', function() {
+				$(cardHtmlElem).find('.card-container').off('transitionend');
+				game.clickCounter = 2;
+				game.playCardUnMatchAnimation(firstOne);
+				game.playCardUnMatchAnimation(secondOne);
+			});
 		}
+
+		this.openCards.length = 0;
 
 		//if all cards have matched, display a message with the final score
 		if ($('.match').length == this.deck.length) {
