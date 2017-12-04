@@ -47,6 +47,7 @@ var Game = function() {
 
 Game.prototype.restart = function() {
 	this.canClick = true;
+	this.firstClick = true;
 	this.firstClickTime = 0;
 	this.clickCounter = 0;
 	this.setStars(3);
@@ -102,8 +103,9 @@ Game.prototype.playCardUnMatchAnimation = function(card) {
 Game.prototype.onCardClick = function(cardHtmlElem) {
 	//console.log(this);
 
+
 	//only when clickCounter less than 2 can player flip a card
-	if(this.clickCounter >= 2){
+	if (this.clickCounter >= 2) {
 		//console.log('clickCounter = '+this.clickCounter);
 		return;
 	}
@@ -111,7 +113,7 @@ Game.prototype.onCardClick = function(cardHtmlElem) {
 	//game starts only when player clicked card for the first time.
 	if (this.firstClick) {
 		this.firstClick = false;
-		this.firstClickTime = new Date();
+		this.firstClickTime = new Date().getTime();
 	}
 
 	if (this.openCards.indexOf(cardHtmlElem) != -1) {
@@ -134,7 +136,7 @@ Game.prototype.onCardClick = function(cardHtmlElem) {
 
 		//console.log(firstOne.html());
 		//console.log(secondOne.html());
-
+		var game = this;
 		//if the cards do match, lock the cards in the open position
 		if (firstOne.html() == secondOne.html()) {
 			//console.log('first one and second one matched!');
@@ -153,11 +155,42 @@ Game.prototype.onCardClick = function(cardHtmlElem) {
 				//add match animation
 				firstOne.addClass('rubberBand');
 				secondOne.addClass('rubberBand');
+
+
+				//if all cards have matched, display a message with the final score
+				console.log($('.match').length + ' ' + game.deck.length);
+				if ($('.match').length == game.deck.length) {
+					//console.log('all cards matched!');
+
+					const now = new Date();
+					const playTime = Math.round((now.getTime() - game.firstClickTime) / 1000);
+
+					$('.modal-body').html('It took you ' + playTime + ' seconds to match all cards!\nDo you want another round?');
+					$('#myModal').modal();
+
+					$('#myModal').on('hide.bs.modal', function() {
+						game.restart();
+					});
+
+				} else {
+					if (game.counter >= 20) {
+						game.setStars(1);
+					} else if (game.counter >= 14) {
+						game.setStars(2);
+					} else {
+						game.setStars(3);
+					}
+
+					//increment the move counter and display it on the page
+					++game.counter;
+					$('.moves').html('' + game.counter);
+				}
+
 			});
 
 			this.clickCounter = 0;
 		} else {
-			var game = this;
+
 			//if the cards do not match, remove the cards from the list and hide the card's symbol
 			$(cardHtmlElem).find('.card-container').on('transitionend', function() {
 				$(cardHtmlElem).find('.card-container').off('transitionend');
@@ -166,32 +199,7 @@ Game.prototype.onCardClick = function(cardHtmlElem) {
 				game.playCardUnMatchAnimation(secondOne);
 			});
 		}
-
 		this.openCards.length = 0;
-
-		//if all cards have matched, display a message with the final score
-		if ($('.match').length == this.deck.length) {
-			//console.log('all cards matched!');
-
-			const now = new Date();
-			const playTime = Math.round((now.getTime() - this.firstClickTime.getTime()) / 1000);
-
-			if (confirm('Congratulation! It took you ' + playTime + ' seconds to match all cards!\nDo you want another round?')) {
-				this.restart();
-			}
-		} else {
-			if (this.counter >= 20) {
-				this.setStars(1);
-			} else if (this.counter >= 14) {
-				this.setStars(2);
-			} else {
-				this.setStars(3);
-			}
-
-			//increment the move counter and display it on the page
-			++this.counter;
-			$('.moves').html('' + this.counter);
-		}
 	}
 }
 

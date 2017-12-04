@@ -52,16 +52,20 @@ h1 {
 }
 
 .deck .card {
-    height: 125px;
-    width: 125px;
-    font-size: 0;
-    color: #ffffff;
     cursor: pointer;
     display: flex;
     justify-content: center;
     align-items: center;
 }
 
+.card{
+    height: 125px;
+    width: 125px;
+    font-size: 0;
+    color: #ffffff;
+    border-width: 0;
+    background-color: transparent;
+}
 
 
 /*
