@@ -71,8 +71,6 @@ h1 {
 /*
 * Styles for flippable cards
 */
-
-
 .card-container{
     height: 125px;
     width: 125px;
@@ -143,7 +141,12 @@ h1 {
     display: inline-block;
 }
 
-.score-panel .restart {
+.seconds {
+    margin-left: 20px;
+    cursor: pointer;
+}
+
+.score-panel .restart  {
     float: right;
     cursor: pointer;
 }

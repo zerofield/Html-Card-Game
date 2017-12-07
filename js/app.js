@@ -12,28 +12,19 @@ Card.prototype.createHtml = function() {
 var Game = function() {
 	this.stars = 3;
 	this.clickCounter = 0;
-	this.firstClickTime = 0;
 	this.firstClick = true;
+	this.seconds = 0;
+	this.intervalId = 0;
 	this.counter = 0;
 	this.openCards = [];
 	//create the deck
 	this.deck = [];
-	this.deck.push(new Card('fa-diamond'));
-	this.deck.push(new Card('fa-diamond'));
-	this.deck.push(new Card('fa-paper-plan-o'));
-	this.deck.push(new Card('fa-paper-plan-o'));
-	this.deck.push(new Card('fa-anchor'));
-	this.deck.push(new Card('fa-anchor'));
-	this.deck.push(new Card('fa-bolt'));
-	this.deck.push(new Card('fa-bolt'));
-	this.deck.push(new Card('fa-cube'));
-	this.deck.push(new Card('fa-cube'));
-	this.deck.push(new Card('fa-leaf'));
-	this.deck.push(new Card('fa-leaf'));
-	this.deck.push(new Card('fa-bicycle'));
-	this.deck.push(new Card('fa-bicycle'));
-	this.deck.push(new Card('fa-bomb'));
-	this.deck.push(new Card('fa-bomb'));
+
+	const icons = ['fa-diamond', 'fa-paper-plane-o', 'fa-anchor', 'fa-bolt', 'fa-cube', 'fa-leaf', 'fa-bicycle', 'fa-bomb'];
+	icons.forEach(item => {
+		this.deck.push(new Card(item));
+		this.deck.push(new Card(item));
+	});
 
 	var game = this;
 	//add key up listner, if play presses 'r', game will be reset.
@@ -48,9 +39,12 @@ var Game = function() {
 Game.prototype.restart = function() {
 	this.canClick = true;
 	this.firstClick = true;
-	this.firstClickTime = 0;
 	this.clickCounter = 0;
 	this.setStars(3);
+	this.seconds = 0;
+
+	clearInterval(this.intervalId);
+	this.intervalId = 0;
 	this.counter = 0;
 	this.openCards.length = 0;
 	this.shuffle(this.deck);
@@ -74,6 +68,9 @@ Game.prototype.restart = function() {
 			game.onCardClick(this);
 		});
 	});
+
+
+	$('.seconds').html('0s');
 };
 
 Game.prototype.setStars = function(starCount) {
@@ -103,7 +100,6 @@ Game.prototype.playCardUnMatchAnimation = function(card) {
 Game.prototype.onCardClick = function(cardHtmlElem) {
 	//console.log(this);
 
-
 	//only when clickCounter less than 2 can player flip a card
 	if (this.clickCounter >= 2) {
 		//console.log('clickCounter = '+this.clickCounter);
@@ -113,7 +109,11 @@ Game.prototype.onCardClick = function(cardHtmlElem) {
 	//game starts only when player clicked card for the first time.
 	if (this.firstClick) {
 		this.firstClick = false;
-		this.firstClickTime = new Date().getTime();
+
+		var game = this;
+		this.intervalId = setInterval(() => {
+			$('.seconds').html(`${++this.seconds}s`);
+		}, 1000);
 	}
 
 	if (this.openCards.indexOf(cardHtmlElem) != -1) {
@@ -133,6 +133,18 @@ Game.prototype.onCardClick = function(cardHtmlElem) {
 	if (this.openCards.length == 2) {
 		var firstOne = $(this.openCards[0]);
 		var secondOne = $(this.openCards[1]);
+
+		if (this.counter >= 20) {
+			this.setStars(1);
+		} else if (this.counter >= 14) {
+			this.setStars(2);
+		} else {
+			this.setStars(3);
+		}
+
+		//increment the move counter and display it on the page
+		++this.counter;
+		$('.moves').html('' + this.counter);
 
 		//console.log(firstOne.html());
 		//console.log(secondOne.html());
@@ -161,29 +173,25 @@ Game.prototype.onCardClick = function(cardHtmlElem) {
 				console.log($('.match').length + ' ' + game.deck.length);
 				if ($('.match').length == game.deck.length) {
 					//console.log('all cards matched!');
+					//stop timer
+					clearInterval(game.intervalId);
+					$('.modal-body').html(`It took you ${game.seconds} seconds to match all cards!
+						Do you want another round?`);
 
-					const now = new Date();
-					const playTime = Math.round((now.getTime() - game.firstClickTime) / 1000);
 
-					$('.modal-body').html('It took you ' + playTime + ' seconds to match all cards!\nDo you want another round?');
+					var starHtml = '';
+					for(var i = 0;i < game.stars; i++){
+						starHtml += '<li><i class="fa fa-star"></i></li>';
+					}
+
+					$('.dialog-stars').html(starHtml);
+
 					$('#myModal').modal();
 
 					$('#myModal').on('hide.bs.modal', function() {
 						game.restart();
 					});
 
-				} else {
-					if (game.counter >= 20) {
-						game.setStars(1);
-					} else if (game.counter >= 14) {
-						game.setStars(2);
-					} else {
-						game.setStars(3);
-					}
-
-					//increment the move counter and display it on the page
-					++game.counter;
-					$('.moves').html('' + game.counter);
 				}
 
 			});
